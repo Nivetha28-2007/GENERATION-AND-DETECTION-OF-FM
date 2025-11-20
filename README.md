@@ -66,12 +66,89 @@ To write a program for Frequency Modulation and Demodulation using SCILAB and to
 <img width="512" height="365" alt="image" src="https://github.com/user-attachments/assets/dfe6bc64-2b6f-4afa-ae79-95391859ab04" />
 
 ## PROGRAM
+```
+clc;
+clear;
+
+am = 8.5;
+fm = 218.9;
+fs = 21300;
+t = 0:1/fs:10/fm;
+ac = 17;
+fc = 2189;
+beta = 5;
+
+msg = am * sin(2 * %pi * fm * t);
+car = ac * cos(2 * %pi * fc * t);
+sFM = ac * cos(2 * %pi * fc * t + beta * sin(2 * %pi * fm * t));
+
+z = hilbert(sFM);
+dz = [diff(z) 0];
+inst_omega = imag(dz ./ z);
+f_inst = (fs / (2 * %pi)) * inst_omega;
+dev = f_inst - fc;
+
+wc = fm / (fs / 2);
+if wc > 0.49 then wc = 0.49; end
+n = 200;
+h = wfir("lp", n + 1, wc, "hm", 0);
+
+N = length(dev);
+L = length(h);
+nf = 3 * (L - 1);
+
+if nf > N - 1 then nf = N - 1; end
+
+if nf < 1 then
+    y = filter(h, 1, dev);
+    demod = y(1:N);
+else
+    xp = [dev(nf+1:-1:2), dev, dev($:-1:$-nf)];
+    y1 = filter(h, 1, xp);
+    y2 = filter(h, 1, y1($:-1:1));
+    y2 = y2($:-1:1);
+    demod = y2(nf+1:nf+N);
+end
+
+demod = demod / max(abs(demod)) * am;
+
+subplot(4,1,1);
+plot(t, msg);
+title("Message-Signal");
+xlabel("Time - (s)");
+ylabel("Amplitude");
+
+subplot(4,1,2);
+plot(t, car);
+title("Carrier-Signal");
+xlabel("Time - (s)");
+ylabel("Amplitude");
+
+subplot(4,1,3);
+plot(t, sFM);
+title("FM-Modulated-Signal");
+xlabel("Time - (s)");
+ylabel("Amplitude");
+
+subplot(4,1,4);
+plot(t, demod);
+title("Demodulated-Signal (Zero-phase)");
+xlabel("Time - (s)");
+ylabel("Amplitude");
+```
+
 
 ## TABULATION
+<img width="1131" height="1256" alt="image" src="https://github.com/user-attachments/assets/2e8c64d5-b3a7-4480-86d8-4a2989152d11" />
+
 
 ## CALCULATION
+<img width="1280" height="750" alt="image" src="https://github.com/user-attachments/assets/accaa066-6eb2-40a7-bff1-05f1156c5720" />
 
 ## OUTPUT
+<img width="1918" height="905" alt="image" src="https://github.com/user-attachments/assets/852e5ceb-3df2-441e-8213-5585eea5547a" />
+
+
 
 ## RESULT
-
+Thus the frequency modulation and demodulation is successfully done and the output is experimentally verified.
